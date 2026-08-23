@@ -1,56 +1,108 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { EMOTIONS, STATES, eyeTransform, sampleCharacter, type Controls, type Emotion, type PetState } from './character'
-import { sampleKawaii } from './kawaii'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { JIRAI_EMOTIONS, sampleJirai, type JiraiEmotion } from './jiraiRig'
 
-const controls=reactive<Controls>({state:'idle',emotion:'neutral',emotionWeight:1,gazeX:0,gazeY:0,talkLevel:.42,pointerActive:true})
-const renderer=ref<'face'|'kawaii'>('kawaii'),now=ref(0),fps=ref(60),autoTalk=ref(true),canvas=ref<HTMLElement|null>(null)
-let raf=0,last=performance.now(),frames=0,fpsSince=last
-const faceFrame=computed(()=>sampleCharacter(now.value,controls)),kawaiiFrame=computed(()=>sampleKawaii(now.value,controls)),statusLabel=computed(()=>renderer.value==='kawaii'?kawaiiFrame.value.statusLabel:faceFrame.value.statusLabel)
-function tick(ms:number){const dt=Math.min((ms-last)/1000,.05);last=ms;now.value+=dt;if(autoTalk.value&&controls.state==='speaking')controls.talkLevel=.08+Math.abs(Math.sin(now.value*8.6)*Math.sin(now.value*2.4))*.9;frames++;if(ms-fpsSince>=500){fps.value=Math.round(frames*1000/(ms-fpsSince));frames=0;fpsSince=ms}raf=requestAnimationFrame(tick)}
-function pointerMove(e:PointerEvent){if(!controls.pointerActive||!canvas.value)return;const b=canvas.value.getBoundingClientRect();controls.gazeX=Math.max(-1,Math.min(1,(e.clientX-(b.left+b.width/2))/(b.width/2)));controls.gazeY=Math.max(-1,Math.min(1,(e.clientY-(b.top+b.height/2))/(b.height/2)))}
-function pointerLeave(){if(controls.pointerActive){controls.gazeX=0;controls.gazeY=0}}
-function playDemo(){const seq:Array<[PetState,Emotion,number]>=[['idle','neutral',900],['listening','attentive',1400],['thinking','curious',1400],['speaking','happy',2500],['success','happy',900],['idle','neutral',1200]];let d=0;for(const[s,e,t]of seq){setTimeout(()=>{controls.state=s;controls.emotion=e},d);d+=t}}
-onMounted(()=>{last=performance.now();fpsSince=last;raf=requestAnimationFrame(tick)});onBeforeUnmount(()=>cancelAnimationFrame(raf))
+const emotion = ref<JiraiEmotion>('neutral')
+const speaking = ref(false)
+const autoTalk = ref(true)
+const talkLevel = ref(0.35)
+const now = ref(0)
+const fps = ref(60)
+let raf = 0
+let last = performance.now()
+let frames = 0
+let fpsSince = last
+
+const frame = computed(() => sampleJirai(now.value, emotion.value, speaking.value, talkLevel.value))
+
+function tick(ms: number) {
+  const dt = Math.min((ms - last) / 1000, 0.05)
+  last = ms
+  now.value += dt
+  if (autoTalk.value && speaking.value) {
+    talkLevel.value = 0.08 + Math.abs(Math.sin(now.value * 8.7) * Math.sin(now.value * 2.3)) * 0.9
+  }
+  frames++
+  if (ms - fpsSince >= 500) {
+    fps.value = Math.round((frames * 1000) / (ms - fpsSince))
+    frames = 0
+    fpsSince = ms
+  }
+  raf = requestAnimationFrame(tick)
+}
+
+function playDemo() {
+  const seq: Array<[JiraiEmotion, boolean, number]> = [
+    ['neutral', false, 900], ['happy', false, 1100], ['wink', false, 850], ['surprised', false, 900],
+    ['neutral', true, 2600], ['excited', false, 1000], ['sad', false, 900], ['annoyed', false, 900], ['sleepy', false, 1200], ['neutral', false, 900]
+  ]
+  let delay = 0
+  for (const [e, talk, duration] of seq) {
+    window.setTimeout(() => { emotion.value = e; speaking.value = talk }, delay)
+    delay += duration
+  }
+}
+
+onMounted(() => { last = performance.now(); fpsSince = last; raf = requestAnimationFrame(tick) })
+onBeforeUnmount(() => cancelAnimationFrame(raf))
 </script>
 
 <template>
-<main class="app-shell">
-  <section class="hero-panel">
-    <header class="topbar"><div><p class="eyebrow">NE5 DESKPET NEO / LCD CHARACTER LAB</p><h1>240 × 240 Character Simulator</h1></div><div class="metrics"><span><i class="dot"></i>{{fps}} FPS</span><span>{{renderer==='kawaii'?'Kawaii mascot':'Big-eye face'}}</span><span>ESP32-S3 target</span></div></header>
-    <div class="renderer-dock"><button :class="{active:renderer==='kawaii'}" @click="renderer='kawaii'">Kawaii mascot</button><button :class="{active:renderer==='face'}" @click="renderer='face'">Big-eye face</button></div>
-    <div ref="canvas" class="stage" @pointermove="pointerMove" @pointerleave="pointerLeave">
-      <div class="screen-shell"><svg class="lcd" viewBox="0 0 240 240" :aria-label="statusLabel">
-        <defs><radialGradient id="screenBg" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#111822"/><stop offset=".64" stop-color="#05080d"/><stop offset="1" stop-color="#010203"/></radialGradient><linearGradient id="eyeFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8ffff"/><stop offset=".72" stop-color="#dffcff"/><stop offset="1" stop-color="#b9f8fb"/></linearGradient><radialGradient id="pupilFill"><stop offset="0" stop-color="#243c55"/><stop offset="1" stop-color="#08111b"/></radialGradient><linearGradient id="mascotFill" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#ffe5ee"/><stop offset="1" stop-color="#ffcbdc"/></linearGradient></defs>
-        <template v-if="renderer==='face'">
-          <rect width="240" height="240" rx="31" fill="url(#screenBg)"/><g :transform="`translate(${faceFrame.faceOffsetX} ${faceFrame.faceOffsetY}) translate(120 120) rotate(${faceFrame.faceRotation}) scale(${faceFrame.faceScaleX} ${faceFrame.faceScaleY}) translate(-120 -120)`"><g v-for="(eye,i) in faceFrame.eyes" :key="i" :transform="eyeTransform(eye)"><ellipse :rx="eye.width/2" :ry="eye.height/2" fill="url(#eyeFill)"/><g :transform="`translate(${eye.pupilX} ${eye.pupilY})`" :opacity="eye.pupilOpacity"><ellipse :rx="eye.pupilWidth/2" :ry="eye.pupilHeight/2" fill="url(#pupilFill)"/><circle :cx="eye.highlightX-eye.pupilX" :cy="eye.highlightY-eye.pupilY" :r="eye.highlightRadius" fill="#fff"/></g></g><path :d="faceFrame.mouthPath" class="mouth-line" :opacity="faceFrame.mouthOpacity" :stroke-width="faceFrame.mouthStrokeWidth"/></g>
-        </template>
-        <template v-else>
-          <rect width="240" height="240" rx="31" fill="#fff4cf"/><circle cx="34" cy="33" r="28" fill="#ffdbe7" opacity=".34"/><circle cx="206" cy="202" r="35" fill="#c9f1e8" opacity=".5"/><ellipse cx="120" cy="224" rx="51" ry="8" fill="#c6909d" opacity=".16"/>
-          <g :transform="`translate(120 138) scale(${kawaiiFrame.bodyScaleX} ${kawaiiFrame.bodyScaleY}) translate(-120 -138) translate(0 ${kawaiiFrame.bodyOffsetY})`"><path d="M82 155 C68 158 64 169 71 178 C75 183 82 184 88 181 L89 202 C90 218 101 222 109 211 L131 211 C139 222 150 218 151 202 L152 181 C158 184 165 183 169 178 C176 169 172 158 158 155 C149 148 139 145 120 145 C101 145 91 148 82 155 Z" fill="url(#mascotFill)" stroke="#3a3038" stroke-width="4"/><g :transform="`rotate(${-kawaiiFrame.armLift} 82 170)`"><path d="M85 164 Q69 158 68 171 Q70 181 87 177" fill="#ffd5e2" stroke="#3a3038" stroke-width="4"/></g><g :transform="`rotate(${kawaiiFrame.armLift} 158 170)`"><path d="M155 164 Q171 158 172 171 Q170 181 153 177" fill="#ffd5e2" stroke="#3a3038" stroke-width="4"/></g></g>
-          <g :transform="`translate(${kawaiiFrame.headOffsetX} ${kawaiiFrame.headOffsetY}) translate(120 100) rotate(${kawaiiFrame.headRotation}) translate(-120 -100)`">
-            <g :transform="`translate(82 55) rotate(${kawaiiFrame.leftEarRotation}) scale(1 ${kawaiiFrame.earScaleY}) translate(-82 -55)`"><path d="M78 67 C65 45 67 19 79 15 C91 11 100 36 94 64 Z" fill="url(#mascotFill)" stroke="#3a3038" stroke-width="4"/><path d="M80 57 C73 41 75 25 80 23 C86 21 91 40 88 57 Z" fill="#f6a9c2" opacity=".55"/></g><g :transform="`translate(158 55) rotate(${kawaiiFrame.rightEarRotation}) scale(1 ${kawaiiFrame.earScaleY}) translate(-158 -55)`"><path d="M146 64 C140 36 149 11 161 15 C173 19 175 45 162 67 Z" fill="url(#mascotFill)" stroke="#3a3038" stroke-width="4"/><path d="M152 57 C149 40 154 21 160 23 C165 25 167 41 160 57 Z" fill="#f6a9c2" opacity=".55"/></g>
-            <path d="M61 104 C61 68 84 47 120 47 C156 47 179 68 179 104 C179 137 158 154 120 154 C82 154 61 137 61 104 Z" fill="url(#mascotFill)" stroke="#3a3038" stroke-width="4.5"/>
-            <path :d="kawaiiFrame.eyebrowLeft" class="brow" :opacity="kawaiiFrame.eyebrowOpacity"/><path :d="kawaiiFrame.eyebrowRight" class="brow" :opacity="kawaiiFrame.eyebrowOpacity"/>
-            <ellipse cx="76" cy="126" rx="14" ry="7" fill="#f79bb5" :opacity="kawaiiFrame.blushOpacity"/><ellipse cx="164" cy="126" rx="14" ry="7" fill="#f79bb5" :opacity="kawaiiFrame.blushOpacity"/>
-            <g v-for="(eye,i) in kawaiiFrame.eyes" :key="i" :transform="`translate(${eye.x} ${eye.y}) rotate(${eye.rotation})`">
-              <template v-if="eye.mode==='open'||eye.mode==='sparkle'||eye.mode==='half'"><ellipse :rx="eye.width/2" :ry="eye.height/2" fill="#fffdf7" stroke="#3a3038" stroke-width="3"/><g :transform="`translate(${eye.pupilX} ${eye.pupilY})`" :opacity="eye.pupilOpacity"><circle :r="eye.pupilRadius" fill="#3a3038"/><circle :cx="-eye.pupilRadius*.3" :cy="-eye.pupilRadius*.33" :r="Math.max(2.2,eye.pupilRadius*.27)" fill="#fff"/><circle v-if="eye.sparkle>.2" :cx="eye.pupilRadius*.35" :cy="eye.pupilRadius*.18" :r="eye.pupilRadius*.18" fill="#fff" :opacity="eye.sparkle"/></g><path v-if="eye.mode==='half'" :d="`M ${-eye.width/2} ${-eye.height*.12} Q 0 ${-eye.height*.35} ${eye.width/2} ${-eye.height*.12}`" class="lid"/><path :d="`M ${-eye.width/2+3} ${-eye.height/2+2} L ${-eye.width/2-2} ${-eye.height/2-5}`" class="lash" :opacity="eye.lash"/><path :d="`M ${eye.width/2-3} ${-eye.height/2+2} L ${eye.width/2+2} ${-eye.height/2-5}`" class="lash" :opacity="eye.lash"/><path v-if="eye.tear>.1" :d="`M ${eye.width*.34} ${eye.height*.28} C ${eye.width*.47} ${eye.height*.5} ${eye.width*.45} ${eye.height*.66} ${eye.width*.33} ${eye.height*.69} C ${eye.width*.2} ${eye.height*.62} ${eye.width*.22} ${eye.height*.47} ${eye.width*.34} ${eye.height*.28} Z`" fill="#9bd8ff" :opacity="eye.tear"/></template>
-              <template v-else-if="eye.mode==='happy'"><path :d="`M ${-eye.width/2} 3 Q 0 ${-eye.height} ${eye.width/2} 3`" class="eye-arc"/></template><template v-else-if="eye.mode==='wink'"><path :d="`M ${-eye.width/2} -2 L 0 5 L ${eye.width/2} -2`" class="eye-arc"/></template><template v-else><path :d="`M ${-eye.width/2} 0 Q 0 7 ${eye.width/2} 0`" class="eye-arc"/></template>
-            </g>
-            <path :d="kawaiiFrame.mouthPath" :class="kawaiiFrame.mouthKind==='fill'?'mouth-fill':'mouth-outline'" :opacity="kawaiiFrame.mouthOpacity"/><ellipse v-if="kawaiiFrame.mouthKind==='fill'&&kawaiiFrame.tongueOpacity>0" cx="120" cy="140" rx="7" ry="3.7" fill="#ff7fa6" :opacity="kawaiiFrame.tongueOpacity"/>
-          </g>
-          <g :opacity="kawaiiFrame.listeningOpacity" class="kawaii-listen"><path d="M43 95 Q33 106 43 117"/><path d="M197 95 Q207 106 197 117"/></g><g class="kawaii-accent" :opacity="kawaiiFrame.accentOpacity" :transform="`translate(202 34) scale(${kawaiiFrame.accentScale})`"><circle r="16"/><text text-anchor="middle" dominant-baseline="central">{{kawaiiFrame.accentText}}</text></g>
-        </template>
-      </svg></div>
-      <div class="state-card"><span>LCD OUTPUT</span><strong>{{statusLabel}}</strong><small>Move pointer/touch around the LCD to test gaze.</small></div>
-    </div>
-  </section>
-  <aside class="control-panel">
-    <div class="panel-heading"><div><p class="eyebrow">CHARACTER CONTROLS</p><h2>Expression & interaction</h2></div><button class="primary" @click="playDemo">Run conversation demo</button></div>
-    <section class="control-section"><div class="section-title"><span>01</span><h3>Conversation state</h3></div><div class="chip-grid state-grid"><button v-for="s in STATES" :key="s" :class="{active:controls.state===s}" @click="controls.state=s">{{s}}</button></div></section>
-    <section class="control-section"><div class="section-title"><span>02</span><h3>Emotion</h3></div><div class="chip-grid emotion-grid"><button v-for="e in EMOTIONS" :key="e" :class="{active:controls.emotion===e}" @click="controls.emotion=e">{{e}}</button></div><label class="slider-row"><span>Intensity <b>{{controls.emotionWeight.toFixed(2)}}</b></span><input v-model.number="controls.emotionWeight" type="range" min="0" max="1" step=".01"/></label></section>
-    <section class="control-section split"><div><div class="section-title"><span>03</span><h3>Gaze</h3></div><label class="slider-row"><span>X <b>{{controls.gazeX.toFixed(2)}}</b></span><input v-model.number="controls.gazeX" type="range" min="-1" max="1" step=".01"/></label><label class="slider-row"><span>Y <b>{{controls.gazeY.toFixed(2)}}</b></span><input v-model.number="controls.gazeY" type="range" min="-1" max="1" step=".01"/></label></div><div><div class="section-title"><span>04</span><h3>Lip sync</h3></div><label class="slider-row"><span>Talk <b>{{controls.talkLevel.toFixed(2)}}</b></span><input v-model.number="controls.talkLevel" :disabled="autoTalk" type="range" min="0" max="1" step=".01"/></label><label class="toggle"><input v-model="autoTalk" type="checkbox"/><span></span>Simulated PCM</label></div></section>
-    <section class="notes"><p><strong>Expression asset mapping.</strong> Eyebrows, eyelids, lashes, highlights, tears, blush and mouth shapes are separate layers. Speaking cycles through A/E/O/U-like visemes while amplitude controls aperture.</p></section>
-  </aside>
-</main>
+  <main class="app-shell">
+    <section class="hero-panel">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">NE5 DESKPET NEO / JIRAI REFERENCE RIG</p>
+          <h1>Reference-locked Character Simulator</h1>
+        </div>
+        <div class="metrics">
+          <span><i class="dot"></i>{{ fps }} FPS</span>
+          <span>PNG reference rig</span>
+          <span>ESP32-S3 later</span>
+        </div>
+      </header>
+
+      <div class="stage jirai-stage">
+        <div class="character-frame">
+          <div class="character-transform" :style="{
+            transform: `translate(${frame.x}px, ${frame.y}px) rotate(${frame.rotation}deg) scale(${frame.scaleX}, ${frame.scaleY})`
+          }">
+            <img class="character-png" :src="frame.characterSrc" :alt="frame.statusLabel" draggable="false" />
+            <img v-if="frame.mouthSrc" class="mouth-png" :src="frame.mouthSrc" alt="lip sync mouth" draggable="false"
+              :style="{ transform: `translate(-50%, -50%) scale(${frame.mouthScale})` }" />
+          </div>
+        </div>
+        <div class="state-card"><span>REFERENCE OUTPUT</span><strong>{{ frame.statusLabel }}</strong><small>Static expressions use reference-derived transparent PNGs. Motion is intentionally minimal.</small></div>
+      </div>
+    </section>
+
+    <aside class="control-panel">
+      <div class="panel-heading">
+        <div><p class="eyebrow">REFERENCE CONTROLS</p><h2>Expression & lip sync</h2></div>
+        <button class="primary" @click="playDemo">Run reference demo</button>
+      </div>
+
+      <section class="control-section">
+        <div class="section-title"><span>01</span><h3>Reference expressions</h3></div>
+        <div class="chip-grid emotion-grid">
+          <button v-for="e in JIRAI_EMOTIONS" :key="e" :class="{ active: emotion === e }" @click="emotion = e; speaking = false">{{ e }}</button>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <div class="section-title"><span>02</span><h3>Lip sync</h3></div>
+        <div class="renderer-dock jirai-toggle">
+          <button :class="{active: !speaking}" @click="speaking = false">Expression</button>
+          <button :class="{active: speaking}" @click="speaking = true; emotion = 'neutral'">Speaking</button>
+        </div>
+        <label class="slider-row"><span>Talk level <b>{{ talkLevel.toFixed(2) }}</b></span><input v-model.number="talkLevel" :disabled="autoTalk" type="range" min="0" max="1" step="0.01" /></label>
+        <label class="toggle"><input v-model="autoTalk" type="checkbox" /><span></span>Simulated PCM envelope</label>
+      </section>
+
+      <section class="notes">
+        <p><strong>Reference lock enabled.</strong> The previous procedural Kawaii/Big-eye emotion set is no longer used in this simulator. Only the attached Jirai-compatible expression set remains.</p>
+        <p>Idle motion is limited to sub-pixel translation, roughly 0.28% vertical breathing, and less than 0.5° rotation so the source proportions are preserved.</p>
+      </section>
+    </aside>
+  </main>
 </template>
