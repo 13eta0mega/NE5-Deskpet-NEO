@@ -40,12 +40,12 @@ describe('Jirai cutout rig v3',()=>{
     expect(mid.mouthVectorPath).not.toBe(start.mouthVectorPath)
     expect(end.mouthSprites.some(m=>JSON.stringify(m.rect)===JSON.stringify(VISEME_RECT.A)&&m.reveal>.99)).toBe(true)
   })
-  it('matches the supplied layout end-pose eye and brow anchors',()=>{
-    const expected={neutral:[168,137],happy:[170,138],wink:[169,137],surprised:[167,132],sad:[171,135],annoyed:[175,139],sleepy:[175,142],excited:[168,134]} as const
+  it('matches the supplied layout end-pose eye anchors and brow control heights',()=>{
+    const expected={neutral:[168,133],happy:[170,134],wink:[169,133],surprised:[167,127],sad:[171,133],annoyed:[175,138],sleepy:[175,139],excited:[168,129]} as const
     for(const emotion of JIRAI_EMOTIONS){
       const f=sampleJirai(input({fromEmotion:emotion,toEmotion:emotion,emotionProgress:1}))
       expect(f.eyes[0].y).toBe(expected[emotion][0])
-      expect(f.browLeft).toContain(` ${expected[emotion][1].toFixed(2)}`)
+      expect(f.browLeft).toContain(`Q 125.00 ${expected[emotion][1].toFixed(2)}`)
     }
   })
   it('normalizes every QA reference into the neutral 351x345 coordinate system',()=>{
