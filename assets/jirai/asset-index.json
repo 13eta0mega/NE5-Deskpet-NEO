@@ -1,0 +1,94 @@
+{
+  "referenceLock": true,
+  "source": "user-attached Jirai reference set, 2026-08-24",
+  "expressions": {
+    "neutral": {
+      "w": 351,
+      "h": 345,
+      "role": "idle/base"
+    },
+    "happy": {
+      "w": 362,
+      "h": 345,
+      "role": "smile/positive response"
+    },
+    "wink": {
+      "w": 362,
+      "h": 344,
+      "role": "playful acknowledgement"
+    },
+    "surprised": {
+      "w": 350,
+      "h": 343,
+      "role": "surprise/interruption"
+    },
+    "sad": {
+      "w": 349,
+      "h": 351,
+      "role": "sad/worried"
+    },
+    "annoyed": {
+      "w": 362,
+      "h": 351,
+      "role": "annoyed/error"
+    },
+    "sleepy": {
+      "w": 357,
+      "h": 351,
+      "role": "sleep/low energy"
+    },
+    "excited": {
+      "w": 350,
+      "h": 349,
+      "role": "success/excited"
+    },
+    "neutral_mouthless": {
+      "w": 351,
+      "h": 345,
+      "role": "lip-sync base"
+    }
+  },
+  "visemes": {
+    "REST": {
+      "w": 161,
+      "h": 40
+    },
+    "SMILE": {
+      "w": 175,
+      "h": 52
+    },
+    "A": {
+      "w": 214,
+      "h": 175
+    },
+    "E": {
+      "w": 161,
+      "h": 101
+    },
+    "I": {
+      "w": 202,
+      "h": 155
+    },
+    "O": {
+      "w": 133,
+      "h": 183
+    },
+    "U": {
+      "w": 69,
+      "h": 97
+    }
+  },
+  "motionLimits": {
+    "rotationDeg": 0.45,
+    "idleTranslatePx": 0.45,
+    "breathScaleY": 0.0028,
+    "excitedTranslatePx": 1.7
+  },
+  "rules": [
+    "Do not redraw the character in SVG.",
+    "Do not add emotions outside this reference-compatible set.",
+    "Preserve source aspect ratio.",
+    "Keep idle motion sub-pixel to avoid puppet-like deformation.",
+    "Use mouthless neutral base plus PNG visemes while speaking."
+  ]
+}
