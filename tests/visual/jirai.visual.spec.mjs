@@ -21,16 +21,8 @@ function comparePng(actualBuf,referenceBuf){
   return{ratio:pixels/(a.width*a.height),diff:PNG.sync.write(diff)}
 }
 async function state(page){
-  return page.locator('[data-testid=rig-output]').evaluate(el=>({
-    emotion:el.dataset.emotion,mouth:el.dataset.mouthLayers,gesture:el.dataset.gestureLayers,
-    eyes:[...el.querySelectorAll('.eye-slot')].map(n=>n.getAttribute('style')),
-    closed:[...el.querySelectorAll('.closed-eye-slot')].map(n=>n.getAttribute('style')),
-    mouths:[...el.querySelectorAll('.mouth-slot')].map(n=>n.getAttribute('style')),
-    brows:[...el.querySelectorAll('.brows path')].map(n=>n.getAttribute('d')),
-    vector:el.querySelector('.rig-mouth-line')?.getAttribute('d')??null
-  }))
+  return page.locator('[data-testid=rig-output]').evaluate(el=>({emotion:el.dataset.emotion,mouth:el.dataset.mouthLayers,gesture:el.dataset.gestureLayers,eyes:[...el.querySelectorAll('.eye-slot')].map(n=>n.getAttribute('style')),closed:[...el.querySelectorAll('.closed-eye-slot')].map(n=>n.getAttribute('style')),mouths:[...el.querySelectorAll('.mouth-slot')].map(n=>n.getAttribute('style')),brows:[...el.querySelectorAll('.brows path')].map(n=>n.getAttribute('d')),vector:el.querySelector('.rig-mouth-line')?.getAttribute('d')??null}))
 }
-
 async function assertVisibleParts(page,emotion){
   const root=page.locator('[data-testid=rig-output]')
   await expect(root).toHaveAttribute('data-emotion',emotion)
@@ -48,14 +40,23 @@ async function assertVisibleParts(page,emotion){
 }
 
 test.describe('Jirai strict rendered QA',()=>{
-  for(const emotion of emotions)test(`${emotion}: rendered endpoint matches normalized supplied reference`,async({page},testInfo)=>{
+  for(const emotion of emotions)test(`${emotion}: isolated rendered endpoint matches isolated normalized reference`,async({page},testInfo)=>{
     await ready(page,emotion,true)
     await assertVisibleParts(page,emotion)
     const overlay=page.locator('[data-testid=reference-overlay]')
+    const rig=page.locator('[data-testid=rig-root]')
+
+    // Actual: only the cutout rig is visible.
     await overlay.evaluate(el=>el.style.visibility='hidden')
-    const actual=await page.locator('[data-testid=rig-root]').screenshot({animations:'disabled'})
+    await rig.evaluate(el=>el.style.visibility='visible')
+    const actual=await rig.screenshot({animations:'disabled'})
+
+    // Reference: only the supplied normalized reference is visible. Never composite it over the rig.
+    await rig.evaluate(el=>el.style.visibility='hidden')
     await overlay.evaluate(el=>el.style.visibility='visible')
     const reference=await overlay.screenshot({animations:'disabled'})
+
+    await rig.evaluate(el=>el.style.visibility='visible')
     const {ratio,diff}=comparePng(actual,reference)
     const limit=emotion==='neutral'?0.045:0.06
     if(ratio>limit){
@@ -66,7 +67,7 @@ test.describe('Jirai strict rendered QA',()=>{
     expect(ratio,`${emotion} visual mismatch ratio ${(ratio*100).toFixed(2)}% exceeds ${(limit*100).toFixed(1)}%`).toBeLessThanOrEqual(limit)
   })
 
-  for(const emotion of emotions)test(`${emotion}: endpoint contains only allowed active parts`,async({page})=>{await ready(page,emotion);await assertVisibleParts(page,emotion)})
+  for(const emotion of emotions)test(`${emotion}: endpoint contains only allowed active visible parts`,async({page})=>{await ready(page,emotion);await assertVisibleParts(page,emotion)})
 
   test('transition history cannot contaminate the final expression',async({page})=>{
     await ready(page,'neutral')
