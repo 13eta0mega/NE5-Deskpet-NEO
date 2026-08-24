@@ -55,7 +55,7 @@ export function sampleJirai(t:number, emotion:JiraiEmotion, speaking:boolean, ta
     x: 0,
     y: breath*.45 + speakingBob - excited + sad,
     scaleX: 1 + excited*.0015,
-    scaleY: 1 + breath*.0028 + excited*.003,
+    scaleY: 1 + breath*.0028 + excited*.001,
     rotation: emotion === 'wink' ? -0.45 : emotion === 'annoyed' ? 0.35 : 0,
     mouthScale: .86 + Math.max(0,Math.min(1,talkLevel))*.16,
     statusLabel: `${emotion.toUpperCase()}${speaking?' / SPEAKING':''}`
