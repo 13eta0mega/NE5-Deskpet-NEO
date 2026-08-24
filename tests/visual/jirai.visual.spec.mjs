@@ -6,7 +6,7 @@ import fs from 'node:fs'
 const emotions=['neutral','happy','wink','surprised','sad','annoyed','sleepy','excited']
 const expected={neutral:{mouth:0,gesture:0},happy:{mouth:1,gesture:0},wink:{mouth:1,gesture:0},surprised:{mouth:1,gesture:0},sad:{mouth:0,gesture:2},annoyed:{mouth:0,gesture:2},sleepy:{mouth:1,gesture:0},excited:{mouth:1,gesture:0}}
 
-async function ready(page,emotion,reference=false){await page.goto(`/?qaEmotion=${emotion}${reference?'&qaReference=1':''}`);await page.locator('.rig-base').waitFor();await page.waitForFunction(()=>[...document.images].every(i=>i.complete));await page.waitForTimeout(80)}
+async function ready(page,emotion,reference=false){await page.goto(`/?qaEmotion=${emotion}${reference?'&qaReference=1':''}`);await page.locator('.rig-base').waitFor();await page.waitForFunction(()=>[...document.images].every(i=>i.complete));await page.addStyleTag({content:'*,*::before,*::after{animation:none!important;transition:none!important}.rig-root{transform:none!important}'});await page.waitForTimeout(100)}
 function comparePng(actualBuf,referenceBuf){const a=PNG.sync.read(actualBuf),r=PNG.sync.read(referenceBuf);expect(a.width).toBe(r.width);expect(a.height).toBe(r.height);const diff=new PNG({width:a.width,height:a.height});const pixels=pixelmatch(a.data,r.data,diff.data,a.width,a.height,{threshold:.12,includeAA:false});return{ratio:pixels/(a.width*a.height),diff:PNG.sync.write(diff)}}
 async function state(page){return page.locator('[data-testid=rig-output]').evaluate(el=>({emotion:el.dataset.emotion,mouth:el.dataset.mouthLayers,gesture:el.dataset.gestureLayers,eyes:[...el.querySelectorAll('.eye-slot')].map(n=>n.getAttribute('style')),closed:[...el.querySelectorAll('.closed-eye-slot')].map(n=>n.getAttribute('style')),mouths:[...el.querySelectorAll('.mouth-slot')].map(n=>n.getAttribute('style')),brows:[...el.querySelectorAll('.brows path')].map(n=>n.getAttribute('d')),vector:el.querySelector('.rig-mouth-line')?.getAttribute('d')??null}))}
 
@@ -15,9 +15,9 @@ test.describe('Jirai strict rendered QA',()=>{
     await ready(page,emotion,true)
     const overlay=page.locator('[data-testid=reference-overlay]')
     await overlay.evaluate(el=>el.style.visibility='hidden')
-    const actual=await page.locator('[data-testid=rig-root]').screenshot()
+    const actual=await page.locator('[data-testid=rig-root]').screenshot({animations:'disabled'})
     await overlay.evaluate(el=>el.style.visibility='visible')
-    const reference=await overlay.screenshot()
+    const reference=await overlay.screenshot({animations:'disabled'})
     const {ratio,diff}=comparePng(actual,reference)
     if(ratio>.08){const ap=testInfo.outputPath(`${emotion}-actual.png`),rp=testInfo.outputPath(`${emotion}-reference.png`),dp=testInfo.outputPath(`${emotion}-diff.png`);fs.writeFileSync(ap,actual);fs.writeFileSync(rp,reference);fs.writeFileSync(dp,diff);await testInfo.attach('actual',{path:ap,contentType:'image/png'});await testInfo.attach('reference',{path:rp,contentType:'image/png'});await testInfo.attach('diff',{path:dp,contentType:'image/png'})}
     expect(ratio,`${emotion} visual mismatch ratio ${(ratio*100).toFixed(2)}% exceeds 8%`).toBeLessThanOrEqual(.08)
