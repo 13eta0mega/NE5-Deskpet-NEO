@@ -5,5 +5,9 @@ export default defineConfig({
   base: '/NE5-Deskpet-NEO/',
   plugins: [vue()],
   server: { port: 5190 },
-  test: { environment: 'node' }
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.test.ts'],
+    exclude: ['tests/visual/**', 'node_modules/**', 'dist/**']
+  }
 })

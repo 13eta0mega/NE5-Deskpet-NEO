@@ -3,7 +3,7 @@ import { EYE_ASSET, JIRAI_EMOTIONS, PARTS_ATLAS_ASSET, PARTS_ATLAS_SIZE, REFEREN
 
 const input=(patch:Partial<JiraiInput>={}):JiraiInput=>({t:1,fromEmotion:'neutral',toEmotion:'neutral',emotionProgress:1,speaking:false,fromViseme:'REST',toViseme:'REST',visemeProgress:1,talkLevel:0,...patch})
 
-describe('Jirai cutout rig v3',()=>{
+describe('Jirai cutout rig v3.1',()=>{
   it('keeps only the eight reference-approved expressions',()=>{
     expect(JIRAI_EMOTIONS).toEqual(['neutral','happy','wink','surprised','sad','annoyed','sleepy','excited'])
   })
@@ -39,9 +39,11 @@ describe('Jirai cutout rig v3',()=>{
     expect(start.mouthVectorPath).toBeDefined()
     expect(mid.mouthVectorPath).not.toBe(start.mouthVectorPath)
     expect(end.mouthSprites.some(m=>JSON.stringify(m.rect)===JSON.stringify(VISEME_RECT.A)&&m.reveal>.99)).toBe(true)
+    expect(end.mouthSprites[0].x).toBe(179)
+    expect(end.mouthSprites[0].y).toBe(220)
   })
-  it('matches the supplied layout end-pose eye anchors and brow control heights',()=>{
-    const expected={neutral:[168,133],happy:[170,134],wink:[169,133],surprised:[167,127],sad:[171,133],annoyed:[175,138],sleepy:[175,139],excited:[168,129]} as const
+  it('matches recalibrated reference eye anchors and brow control heights',()=>{
+    const expected={neutral:[168,132],happy:[169,132],wink:[168,132],surprised:[166,125],sad:[170,132],annoyed:[173,136],sleepy:[173,137],excited:[167,127]} as const
     for(const emotion of JIRAI_EMOTIONS){
       const f=sampleJirai(input({fromEmotion:emotion,toEmotion:emotion,emotionProgress:1}))
       expect(f.eyes[0].y).toBe(expected[emotion][0])
@@ -73,8 +75,8 @@ describe('Jirai cutout rig v3',()=>{
   it('keeps root animation restrained while changing expressions',()=>{
     for(const emotion of JIRAI_EMOTIONS)for(let i=0;i<=60;i++){
       const f=sampleJirai(input({t:i/30,fromEmotion:'neutral',toEmotion:emotion,emotionProgress:i/60}))
-      expect(Math.abs(f.rootRotation)).toBeLessThanOrEqual(.3)
-      expect(Math.abs(f.rootY)).toBeLessThanOrEqual(2)
+      expect(Math.abs(f.rootRotation)).toBeLessThanOrEqual(.15)
+      expect(Math.abs(f.rootY)).toBeLessThanOrEqual(.25)
     }
   })
 })
