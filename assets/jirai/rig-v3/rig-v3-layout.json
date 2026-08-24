@@ -1,0 +1,170 @@
+{
+  "canvas": {
+    "width": 351,
+    "height": 345
+  },
+  "eyeAnchors": {
+    "left": [
+      125,
+      168
+    ],
+    "right": [
+      233,
+      168
+    ]
+  },
+  "eyeModes": {
+    "open": {
+      "left": "eyes/open_L.png",
+      "right": "eyes/open_R.png"
+    },
+    "happy": {
+      "left": "eyes/happy_L.png",
+      "right": "eyes/happy_R.png"
+    },
+    "wink": {
+      "left": "eyes/open_L.png",
+      "right": "eyes/wink_R.png"
+    },
+    "half": {
+      "left": "eyes/half_L.png",
+      "right": "eyes/half_R.png"
+    },
+    "closed": {
+      "left": "eyes/closed_L.png",
+      "right": "eyes/closed_R.png"
+    },
+    "sparkle": {
+      "left": "eyes/sparkle_L.png",
+      "right": "eyes/sparkle_R.png"
+    }
+  },
+  "emotionPose": {
+    "neutral": {
+      "eyes": "open",
+      "eyeOffset": [
+        0,
+        0
+      ],
+      "browY": 137,
+      "browTilt": 0,
+      "mouth": "vector-neutral"
+    },
+    "happy": {
+      "eyes": "happy",
+      "eyeOffset": [
+        0,
+        2
+      ],
+      "browY": 138,
+      "browTilt": -3,
+      "mouth": "A"
+    },
+    "wink": {
+      "eyes": "wink",
+      "eyeOffset": [
+        0,
+        1
+      ],
+      "browY": 137,
+      "browTilt": 2,
+      "mouth": "A"
+    },
+    "surprised": {
+      "eyes": "open",
+      "eyeOffset": [
+        0,
+        -1
+      ],
+      "browY": 132,
+      "browTilt": 0,
+      "mouth": "O"
+    },
+    "sad": {
+      "eyes": "sparkle",
+      "eyeOffset": [
+        0,
+        3
+      ],
+      "browY": 135,
+      "browTilt": -13,
+      "mouth": "vector-frown"
+    },
+    "annoyed": {
+      "eyes": "half",
+      "eyeOffset": [
+        0,
+        7
+      ],
+      "browY": 139,
+      "browTilt": 12,
+      "mouth": "vector-annoyed"
+    },
+    "sleepy": {
+      "eyes": "closed",
+      "eyeOffset": [
+        0,
+        7
+      ],
+      "browY": 142,
+      "browTilt": 0,
+      "mouth": "U"
+    },
+    "excited": {
+      "eyes": "open",
+      "eyeOffset": [
+        0,
+        0
+      ],
+      "browY": 134,
+      "browTilt": -2,
+      "mouth": "E"
+    }
+  },
+  "mouthAnchor": [
+    179,
+    220
+  ],
+  "runtimeRules": {
+    "rasterMorph": false,
+    "eyeSwapAtOcclusion": 0.5,
+    "transitionMs": 430,
+    "eyeOcclusionMs": 190,
+    "mouthSwapGateMs": 42,
+    "note": "Raster eye/mouth sprites are never mesh-morphed. Eye swaps happen while clipped/closed. Simple line mouths and eyebrows are vector control-point interpolations."
+  },
+  "gestures": {
+    "sad": [
+      {
+        "src": "gestures/sad_left.png",
+        "x": 143.5,
+        "y": 274.5,
+        "w": 59,
+        "h": 63
+      },
+      {
+        "src": "gestures/sad_right.png",
+        "x": 219.5,
+        "y": 276,
+        "w": 63,
+        "h": 68
+      }
+    ],
+    "annoyed": [
+      {
+        "src": "gestures/annoyed_left.png",
+        "x": 146.5,
+        "y": 317.5,
+        "w": 69,
+        "h": 43
+      },
+      {
+        "src": "gestures/annoyed_right.png",
+        "x": 217,
+        "y": 315.5,
+        "w": 68,
+        "h": 47
+      }
+    ]
+  }
+}

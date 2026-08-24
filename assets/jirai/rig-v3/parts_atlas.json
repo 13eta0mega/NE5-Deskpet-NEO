@@ -1,0 +1,138 @@
+{
+  "width": 256,
+  "height": 331,
+  "sprites": {
+    "eyes/closed_L.png": {
+      "x": 4,
+      "y": 4,
+      "w": 48,
+      "h": 14
+    },
+    "eyes/closed_R.png": {
+      "x": 56,
+      "y": 4,
+      "w": 48,
+      "h": 14
+    },
+    "eyes/half_L.png": {
+      "x": 108,
+      "y": 4,
+      "w": 49,
+      "h": 34
+    },
+    "eyes/half_R.png": {
+      "x": 161,
+      "y": 4,
+      "w": 45,
+      "h": 34
+    },
+    "eyes/happy_L.png": {
+      "x": 4,
+      "y": 42,
+      "w": 50,
+      "h": 27
+    },
+    "eyes/happy_R.png": {
+      "x": 58,
+      "y": 42,
+      "w": 50,
+      "h": 27
+    },
+    "eyes/open_L.png": {
+      "x": 112,
+      "y": 42,
+      "w": 52,
+      "h": 55
+    },
+    "eyes/open_R.png": {
+      "x": 168,
+      "y": 42,
+      "w": 52,
+      "h": 55
+    },
+    "eyes/sparkle_L.png": {
+      "x": 4,
+      "y": 101,
+      "w": 54,
+      "h": 51
+    },
+    "eyes/sparkle_R.png": {
+      "x": 62,
+      "y": 101,
+      "w": 54,
+      "h": 51
+    },
+    "eyes/wink_R.png": {
+      "x": 120,
+      "y": 101,
+      "w": 40,
+      "h": 31
+    },
+    "mouth/A.png": {
+      "x": 164,
+      "y": 101,
+      "w": 43,
+      "h": 35
+    },
+    "mouth/E.png": {
+      "x": 4,
+      "y": 156,
+      "w": 46,
+      "h": 29
+    },
+    "mouth/I.png": {
+      "x": 54,
+      "y": 156,
+      "w": 42,
+      "h": 32
+    },
+    "mouth/O.png": {
+      "x": 100,
+      "y": 156,
+      "w": 23,
+      "h": 32
+    },
+    "mouth/REST.png": {
+      "x": 127,
+      "y": 156,
+      "w": 38,
+      "h": 10
+    },
+    "mouth/SMILE.png": {
+      "x": 169,
+      "y": 156,
+      "w": 42,
+      "h": 13
+    },
+    "mouth/U.png": {
+      "x": 215,
+      "y": 156,
+      "w": 18,
+      "h": 25
+    },
+    "gestures/annoyed_left.png": {
+      "x": 4,
+      "y": 192,
+      "w": 69,
+      "h": 43
+    },
+    "gestures/annoyed_right.png": {
+      "x": 77,
+      "y": 192,
+      "w": 68,
+      "h": 47
+    },
+    "gestures/sad_left.png": {
+      "x": 149,
+      "y": 192,
+      "w": 59,
+      "h": 63
+    },
+    "gestures/sad_right.png": {
+      "x": 4,
+      "y": 259,
+      "w": 63,
+      "h": 68
+    }
+  }
+}
