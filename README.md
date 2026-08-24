@@ -4,21 +4,21 @@ PC-first prototype for the NE5 DeskPet character system.
 
 ## Current milestone
 
-This branch implements the first **PC Character Lab** before ESP32-S3 integration.
+The project now uses **Jirai Cutout Rig v3** for PC-side character validation before ESP32-S3 integration.
 
 Implemented now:
 
-- Original soft-asymmetrical pebble character (not a Grok/Taby visual clone)
-- 64-sample procedural body silhouette
-- 16 emotion grammar presets
-- 10 conversation states
-- Deterministic `sampleCharacter(time, controls)` character engine
-- Blink, subtle breathing, idle gaze drift and pointer gaze tracking
-- State overrides for listening/interrupted/success/error/sleep
-- Speaking-only mouth with simulated audio-envelope motion
-- Interactive state/emotion/gaze/talk controls
-- Conversation demo sequence
-- Vitest coverage and GitHub Actions build/test validation
+- Reference-derived transparent PNG base and 1:1 sprite atlas
+- Eight approved expressions: `neutral`, `happy`, `wink`, `surprised`, `sad`, `annoyed`, `sleepy`, `excited`
+- No raster mesh morphing for eyes or detailed mouths
+- Eye pose swaps hidden behind blink/occlusion
+- Vector interpolation for eyebrows and simple mouth lines
+- Discrete viseme sprites: `REST`, `SMILE`, `A`, `E`, `I`, `O`, `U`
+- Short REST gate between detailed viseme changes
+- Sad/annoyed reference-derived gesture sprites
+- Landmark-normalized reference QA overlay
+- Transition-duration control and frame-by-frame scrub QA
+- Vitest and production-build validation
 
 ## Run on PC
 
@@ -35,6 +35,16 @@ Open:
 http://localhost:5190
 ```
 
+## GitHub Pages test build
+
+The production simulator is deployed from `main` through `.github/workflows/pages.yml`.
+
+Expected project Pages URL:
+
+```text
+https://13eta0mega.github.io/NE5-Deskpet-NEO/
+```
+
 ## Validation
 
 ```bash
@@ -42,24 +52,14 @@ npm test
 npm run build
 ```
 
-## Recommended things to test visually
+## Recommended visual QA
 
-1. Move the mouse around the character and check whether gaze feels natural.
-2. Compare `neutral`, `happy`, `angry`, `sad`, `confused`, `curious`, `sleepy`, and `surprised`.
-3. Switch through `listening -> thinking -> speaking -> success -> idle`.
-4. In `speaking`, toggle the simulated audio envelope and inspect the mouth/body response.
-5. Run the conversation demo and judge whether the DeskPet feels alive without excessive idle movement.
+1. Test `Neutral -> Happy` with transition pause enabled.
+2. Scrub through 40-60% and inspect the eye occlusion swap.
+3. Confirm the simple mouth line changes continuously before the detailed happy mouth appears.
+4. Test `Neutral -> Sad` and compare the final pose with the reference overlay.
+5. Enable speaking and inspect the REST-gated viseme changes.
 
 ## Architecture direction
 
-The current renderer is SVG because this is the PC design-validation phase. The semantic interface is already separated into state, emotion, gaze and talk level so the same character behavior can later drive an ESP32-S3 framebuffer renderer without sending graphical frames from the PC.
-
-## Next planned milestone
-
-After the character direction is approved:
-
-1. Refine the original visual identity and signature motion.
-2. Add explicit transition blending between state/emotion changes.
-3. Wrap the simulator in Tauri 2 as a native desktop application.
-4. Add Gemini Live PC microphone/speaker integration.
-5. Add ESP32-S3 transport and LCD renderer later.
+The PC renderer uses a cutout-part rig: reference PNG sprites remain undeformed while simple vector curves and transform parameters are interpolated. The same semantic pose data can later drive an ESP32-S3 renderer without streaming graphical frames from the PC.
